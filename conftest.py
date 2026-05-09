@@ -29,3 +29,14 @@ def sample_features():
     features = rng.standard_normal((n, 4)).astype(np.float32)
     labels = rng.integers(0, 4, size=n).astype(np.int64)
     return features, labels
+
+
+@pytest.fixture
+def sample_windows():
+    """Small raw window array for CNN testing."""
+    rng = np.random.default_rng(42)
+    n = 50
+    window_size = 128
+    windows = rng.standard_normal((n, window_size)).astype(np.float32)
+    labels = rng.integers(0, 4, size=n).astype(np.int64)
+    return windows, labels

@@ -1,7 +1,7 @@
 """Preprocess raw sensor data into feature vectors for training.
 
 Sliding-window feature extraction with statistical features:
-mean, std, peak, RMS per axis → 12 features per window.
+mean, std, peak, RMS per window → 4 features per window.
 """
 
 import argparse
@@ -92,6 +92,50 @@ def create_dataset(
     return np.concatenate(all_features), np.concatenate(all_labels)
 
 
+def extract_raw_windows(
+    signal: np.ndarray,
+    window_size: int = 128,
+    stride: int = 64,
+) -> np.ndarray:
+    """Extract raw signal windows from a single signal.
+
+    Args:
+        signal: 1D array of shape (signal_length,)
+        window_size: size of sliding window
+        stride: step between windows
+
+    Returns:
+        windows: array of shape (n_windows, window_size)
+    """
+    windows = []
+    for i in range(0, len(signal) - window_size + 1, stride):
+        windows.append(signal[i : i + window_size])
+    return np.array(windows, dtype=np.float32)
+
+
+def create_window_dataset(
+    signals: np.ndarray,
+    labels: np.ndarray,
+    window_size: int = 128,
+    stride: int = 64,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Extract raw signal windows and labels for all samples.
+
+    Returns:
+        all_windows: shape (total_windows, window_size)
+        all_labels: shape (total_windows,)
+    """
+    all_windows = []
+    all_labels = []
+
+    for signal, label in zip(signals, labels):
+        windows = extract_raw_windows(signal, window_size=window_size, stride=stride)
+        all_windows.append(windows)
+        all_labels.append(np.full(len(windows), label))
+
+    return np.concatenate(all_windows), np.concatenate(all_labels)
+
+
 def split_data(
     features: np.ndarray,
     labels: np.ndarray,
@@ -99,23 +143,27 @@ def split_data(
     test_split: float = 0.15,
     seed: int = 42,
 ) -> dict[str, tuple[np.ndarray, np.ndarray]]:
-    """Split data into train/val/test sets with stratification."""
-    rng = np.random.default_rng(seed)
+    """Split data into train/val/test sets with stratification.
 
-    n = len(labels)
-    indices = rng.permutation(n)
+    Uses stratified splitting to preserve class proportions across all splits.
+    """
+    from sklearn.model_selection import train_test_split
 
-    test_size = int(n * test_split)
-    val_size = int(n * val_split)
+    # First split off test set
+    remaining_features, test_features, remaining_labels, test_labels = (
+        train_test_split(features, labels, test_size=test_split, stratify=labels, random_state=seed)
+    )
 
-    test_idx = indices[:test_size]
-    val_idx = indices[test_size : test_size + val_size]
-    train_idx = indices[test_size + val_size :]
+    # Then split remaining into train and val
+    val_ratio = val_split / (1 - test_split)
+    train_features, val_features, train_labels, val_labels = (
+        train_test_split(remaining_features, remaining_labels, test_size=val_ratio, stratify=remaining_labels, random_state=seed)
+    )
 
     splits = {
-        "train": (features[train_idx], labels[train_idx]),
-        "val": (features[val_idx], labels[val_idx]),
-        "test": (features[test_idx], labels[test_idx]),
+        "train": (train_features, train_labels),
+        "val": (val_features, val_labels),
+        "test": (test_features, test_labels),
     }
 
     for name, (x, y) in splits.items():
@@ -147,22 +195,29 @@ def main():
     features, feature_labels = create_dataset(signals, labels, window_size, stride)
     print(f"  Extracted {len(features)} feature windows")
 
-    print("Normalizing features...")
-    # Normalize using training set statistics only
-    # First split to get train indices, then normalize
-    n = len(feature_labels)
-    test_size = int(n * test_split)
-    val_size = int(n * val_split)
-    train_count = n - test_size - val_size
-
-    train_features = features[:train_count]
-    _, mean, std = normalize_features(train_features)
-
-    # Normalize all features with training statistics
-    features_normalized, _, _ = normalize_features(features, mean, std)
+    print("Extracting raw windows...")
+    windows, window_labels = create_window_dataset(signals, labels, window_size, stride)
+    print(f"  Extracted {len(windows)} raw windows")
 
     print("Splitting data...")
-    splits = split_data(features_normalized, feature_labels, val_split, test_split)
+    # Split first to get the actual train set, then normalize using its statistics
+    splits = split_data(features, feature_labels, val_split, test_split)
+
+    # Split raw windows using the same indices (need same split structure)
+    # Since split_data is stratified, we split windows separately but with same params
+    window_splits = split_data(windows, window_labels, val_split, test_split)
+
+    print("Normalizing features...")
+    # Compute normalization stats from the actual training split only
+    train_features_raw = splits["train"][0]
+    _, mean, std = normalize_features(train_features_raw)
+
+    # Apply normalization to all splits
+    normalized_splits = {}
+    for name, (x, y) in splits.items():
+        x_norm, _, _ = normalize_features(x, mean, std)
+        normalized_splits[name] = (x_norm, y)
+    splits = normalized_splits
 
     # Save
     output_dir = Path(args.output)
@@ -171,6 +226,10 @@ def main():
     for name, (x, y) in splits.items():
         np.save(output_dir / f"{name}_features.npy", x)
         np.save(output_dir / f"{name}_labels.npy", y)
+
+    # Save raw windows for CNN model
+    for name, (w, _) in window_splits.items():
+        np.save(output_dir / f"{name}_windows.npy", w)
 
     # Save normalization stats for inference
     np.save(output_dir / "norm_mean.npy", mean)

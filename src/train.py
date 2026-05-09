@@ -14,7 +14,7 @@ import torch.nn as nn
 import yaml
 
 from src.dataset import get_dataloaders
-from src.model import SensorClassifier
+from src.model import get_model
 
 
 def train_epoch(
@@ -80,21 +80,41 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    # Determine model architecture
+    arch = model_params.get("arch", "fc")
+    model_type = arch  # 'fc' or 'cnn'
+
     # Data
     train_loader, val_loader, _ = get_dataloaders(
         batch_size=train_params["batch_size"],
+        model_type=model_type,
     )
 
-    # Determine input_dim from data
-    sample_features, _ = next(iter(train_loader))
-    input_dim = sample_features.shape[1]
-
     # Model
-    model = SensorClassifier(
-        input_dim=input_dim,
-        hidden_dim=model_params["hidden_dim"],
-        n_classes=model_params["n_classes"],
-    ).to(device)
+    if arch == "cnn":
+        cnn_params = model_params.get("cnn", {})
+        model = get_model(
+            arch,
+            window_size=preprocess_params["window_size"],
+            n_classes=model_params["n_classes"],
+            channels=tuple(cnn_params.get("channels", [32, 64])),
+            kernel_size=cnn_params.get("kernel_size", 7),
+            pool_size=cnn_params.get("pool_size", 2),
+            fc_hidden=cnn_params.get("fc_hidden", 128),
+            dropout=cnn_params.get("dropout", 0.3),
+        )
+    else:
+        # Infer input_dim from data for FC model
+        sample_features, _ = next(iter(train_loader))
+        input_dim = sample_features.shape[1]
+        model = get_model(
+            arch,
+            input_dim=input_dim,
+            hidden_dim=model_params["hidden_dim"],
+            n_classes=model_params["n_classes"],
+        )
+
+    model.to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=train_params["lr"])
     criterion = nn.CrossEntropyLoss()
@@ -104,10 +124,10 @@ def main():
 
     with mlflow.start_run():
         mlflow.log_params({
+            "arch": arch,
             **train_params,
             **model_params,
             **preprocess_params,
-            "input_dim": input_dim,
         })
 
         best_val_acc = 0.0

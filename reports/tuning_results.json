@@ -1,0 +1,9 @@
+{
+  "best_val_acc": 0.9223,
+  "best_params": {
+    "lr": 0.001053670985627518,
+    "hidden_dim": 256,
+    "batch_size": 64
+  },
+  "n_trials": 50
+}

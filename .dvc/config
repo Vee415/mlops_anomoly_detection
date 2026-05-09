@@ -1,0 +1,4 @@
+['remote "storage"']
+    url = s3://your-bucket/dvc-storage
+['core']
+    remote = storage

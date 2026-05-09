@@ -1,6 +1,6 @@
 {
-  "val_acc": 0.9194,
-  "macro_precision": 0.9208,
-  "macro_recall": 0.9179,
-  "macro_f1": 0.9176
+  "val_acc": 0.9976,
+  "macro_precision": 0.9976,
+  "macro_recall": 0.9976,
+  "macro_f1": 0.9976
 }

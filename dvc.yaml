@@ -1,13 +1,18 @@
 stages:
-  generate:
-    cmd: python src/generate_synthetic.py --output data/raw
+  data:
+    cmd: python src/prepare_data.py --output data/raw
     deps:
+      - src/prepare_data.py
       - src/generate_synthetic.py
+      - src/download_cwru.py
     outs:
       - data/raw/signals.npy
       - data/raw/labels.npy
     params:
+      - data_source.type
       - generate.seed
+      - generate.n_samples
+      - generate.signal_length
 
   preprocess:
     cmd: python src/preprocess.py --input data/raw --output data/processed
@@ -24,11 +29,31 @@ stages:
       - data/processed/test_labels.npy
       - data/processed/norm_mean.npy
       - data/processed/norm_std.npy
+      - data/processed/train_windows.npy
+      - data/processed/val_windows.npy
+      - data/processed/test_windows.npy
     params:
       - preprocess.window_size
       - preprocess.stride
       - preprocess.val_split
       - preprocess.test_split
+
+  validate:
+    cmd: python src/validate.py
+    deps:
+      - src/validate.py
+      - data/processed/train_features.npy
+      - data/processed/train_labels.npy
+      - data/processed/val_features.npy
+      - data/processed/val_labels.npy
+      - data/processed/test_features.npy
+      - data/processed/test_labels.npy
+    params:
+      - validate.min_per_class
+      - validate.drift_threshold
+    metrics:
+      - reports/data_validation.json:
+          cache: false
 
   train:
     cmd: python src/train.py
@@ -39,13 +64,17 @@ stages:
       - data/processed/train_labels.npy
       - data/processed/val_features.npy
       - data/processed/val_labels.npy
+      - data/processed/train_windows.npy
+      - data/processed/val_windows.npy
     params:
       - train.lr
       - train.epochs
       - train.batch_size
       - train.patience
+      - model.arch
       - model.hidden_dim
       - model.n_classes
+      - model.cnn
     outs:
       - models/model.pth
     metrics:
@@ -59,6 +88,45 @@ stages:
       - models/model.pth
       - data/processed/test_features.npy
       - data/processed/test_labels.npy
+      - data/processed/test_windows.npy
     outs:
       - reports/evaluation_report.md:
+          cache: false
+
+  tune:
+    cmd: python src/tune.py --n-trials 50
+    deps:
+      - src/tune.py
+      - data/processed/train_features.npy
+      - data/processed/train_labels.npy
+      - data/processed/val_features.npy
+      - data/processed/val_labels.npy
+      - data/processed/train_windows.npy
+      - data/processed/val_windows.npy
+    params:
+      - model.arch
+      - model.n_classes
+      - model.cnn
+      - train.epochs
+      - train.patience
+    metrics:
+      - reports/tuning_results.json:
+          cache: false
+
+  monitor:
+    cmd: python src/monitor.py
+    deps:
+      - src/monitor.py
+      - data/processed/train_features.npy
+      - data/processed/test_features.npy
+      - data/processed/test_labels.npy
+      - data/processed/test_windows.npy
+      - models/model.pth
+    params:
+      - model.arch
+      - model.hidden_dim
+      - model.n_classes
+      - model.cnn
+    metrics:
+      - reports/drift_metrics.json:
           cache: false

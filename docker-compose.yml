@@ -23,3 +23,17 @@ services:
       --default-artifact-root ./mlruns"
     volumes:
       - ./mlruns:/app/mlruns
+
+  serve:
+    build:
+      context: .
+      dockerfile: Dockerfile.serve
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+      - ./data/processed:/app/data/processed
+    depends_on:
+      - mlflow
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000

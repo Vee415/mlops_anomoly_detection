@@ -1,56 +1,27 @@
-"""Sensor classification model — 1D CNN for bearing fault detection."""
+"""Model factory — routes to FC or CNN based on params."""
 
-import torch
-import torch.nn as nn
+from src.models.fc import SensorClassifier
+from src.models.cnn import SensorCNN1D
+
+MODEL_REGISTRY = {
+    "fc": SensorClassifier,
+    "cnn": SensorCNN1D,
+}
 
 
-class SensorClassifier(nn.Module):
-    """1D CNN classifier for sensor anomaly detection.
-
-    Takes a feature vector from sliding-window preprocessing and classifies
-    into n_classes fault categories.
-
-    Architecture:
-        FC input → BatchNorm → ReLU → FC hidden → BatchNorm → ReLU → FC output
-
-    This is a feature-level classifier (not raw signal). The preprocessing
-    stage extracts statistical features from sliding windows, so the model
-    operates on fixed-length feature vectors.
+def get_model(arch: str, **kwargs):
+    """Return model instance by architecture name.
 
     Args:
-        input_dim: Number of input features (4 for single-axis stats).
-        hidden_dim: Hidden layer dimension.
-        n_classes: Number of fault categories.
-        dropout: Dropout probability between layers.
+        arch: Architecture identifier ('fc' or 'cnn').
+        **kwargs: Arguments passed to the model constructor.
+
+    Returns:
+        Instantiated model.
+
+    Raises:
+        ValueError: If arch is not in MODEL_REGISTRY.
     """
-
-    def __init__(
-        self,
-        input_dim: int = 4,
-        hidden_dim: int = 256,
-        n_classes: int = 4,
-        dropout: float = 0.3,
-    ):
-        super().__init__()
-        self.classifier = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim),
-            nn.BatchNorm1d(hidden_dim),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_dim, hidden_dim // 2),
-            nn.BatchNorm1d(hidden_dim // 2),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_dim // 2, n_classes),
-        )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass.
-
-        Args:
-            x: Input tensor of shape (batch, input_dim)
-
-        Returns:
-            Logits tensor of shape (batch, n_classes)
-        """
-        return self.classifier(x)
+    if arch not in MODEL_REGISTRY:
+        raise ValueError(f"Unknown arch '{arch}'. Choose from: {list(MODEL_REGISTRY)}")
+    return MODEL_REGISTRY[arch](**kwargs)

@@ -1,4 +1,4 @@
-"""PyTorch Dataset for sensor classification features."""
+"""PyTorch Dataset classes for sensor classification."""
 
 import torch
 from torch.utils.data import Dataset
@@ -20,18 +20,49 @@ class SensorDataset(Dataset):
         return self.features[idx], self.labels[idx]
 
 
+class SensorWindowDataset(Dataset):
+    """Dataset wrapping raw signal windows for CNN models."""
+
+    def __init__(self, windows_path: str, labels_path: str):
+        import numpy as np
+
+        self.windows = torch.from_numpy(np.load(windows_path)).float().unsqueeze(1)  # (N, 1, W)
+        self.labels = torch.from_numpy(np.load(labels_path)).long()
+
+    def __len__(self) -> int:
+        return len(self.labels)
+
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
+        return self.windows[idx], self.labels[idx]
+
+
 def get_dataloaders(
     data_dir: str = "data/processed",
     batch_size: int = 64,
+    model_type: str = "fc",
 ) -> tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
-    """Create train/val/test DataLoaders from processed data."""
+    """Create train/val/test DataLoaders from processed data.
+
+    Args:
+        data_dir: Path to processed data directory.
+        batch_size: Batch size for DataLoaders.
+        model_type: 'fc' for feature-based SensorDataset, 'cnn' for SensorWindowDataset.
+
+    Returns:
+        Tuple of (train_loader, val_loader, test_loader).
+    """
     from pathlib import Path
 
     data_path = Path(data_dir)
 
-    train_ds = SensorDataset(str(data_path / "train_features.npy"), str(data_path / "train_labels.npy"))
-    val_ds = SensorDataset(str(data_path / "val_features.npy"), str(data_path / "val_labels.npy"))
-    test_ds = SensorDataset(str(data_path / "test_features.npy"), str(data_path / "test_labels.npy"))
+    if model_type == "cnn":
+        train_ds = SensorWindowDataset(str(data_path / "train_windows.npy"), str(data_path / "train_labels.npy"))
+        val_ds = SensorWindowDataset(str(data_path / "val_windows.npy"), str(data_path / "val_labels.npy"))
+        test_ds = SensorWindowDataset(str(data_path / "test_windows.npy"), str(data_path / "test_labels.npy"))
+    else:
+        train_ds = SensorDataset(str(data_path / "train_features.npy"), str(data_path / "train_labels.npy"))
+        val_ds = SensorDataset(str(data_path / "val_features.npy"), str(data_path / "val_labels.npy"))
+        test_ds = SensorDataset(str(data_path / "test_features.npy"), str(data_path / "test_labels.npy"))
 
     train_loader = torch.utils.data.DataLoader(train_ds, batch_size=batch_size, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_ds, batch_size=batch_size, shuffle=False)

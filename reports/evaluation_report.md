@@ -1,8 +1,9 @@
-# Evaluation Report — Sensor Anomaly Detection
+# Evaluation Report â€” Sensor Anomaly Detection
 
 ## Run Info
-- **Date:** 2026-05-09 01:09
-- **Commit:** unknown
+- **Date:** 2026-05-09 13:30
+- **Commit:** 0a541fa
+- **Architecture:** cnn
 - **Params:** window_size=128, lr=0.001, epochs=50
 
 ## Classification Report
@@ -10,14 +11,14 @@
 ```
                   precision    recall  f1-score   support
 
-          Normal       1.00      1.00      1.00       952
-Inner Race Fault       0.86      0.98      0.92       941
-Outer Race Fault       0.91      0.83      0.86       900
-      Ball Fault       0.92      0.86      0.89       927
+          Normal       1.00      1.00      1.00       930
+Inner Race Fault       1.00      1.00      1.00       930
+Outer Race Fault       1.00      1.00      1.00       930
+      Ball Fault       1.00      0.99      1.00       930
 
-        accuracy                           0.92      3720
-       macro avg       0.92      0.92      0.92      3720
-    weighted avg       0.92      0.92      0.92      3720
+        accuracy                           1.00      3720
+       macro avg       1.00      1.00      1.00      3720
+    weighted avg       1.00      1.00      1.00      3720
 
 ```
 
@@ -25,10 +26,10 @@ Outer Race Fault       0.91      0.83      0.86       900
 
 | | Normal | Inner Race | Outer Race | Ball Fault |
 |---|---|---|---|---|
-| Normal | 951 | 1 | 0 | 0 |
-| Inner Race Fault | 3 | 926 | 9 | 3 |
-| Outer Race Fault | 0 | 91 | 744 | 65 |
-| Ball Fault | 0 | 59 | 69 | 799 |
+| Normal | 930 | 0 | 0 | 0 |
+| Inner Race Fault | 0 | 930 | 0 | 0 |
+| Outer Race Fault | 0 | 0 | 927 | 3 |
+| Ball Fault | 0 | 2 | 4 | 924 |
 
 ## Reproducibility
 - Run `dvc repro` to reproduce these exact results.
