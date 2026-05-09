@@ -1,0 +1,20 @@
+generate:
+  seed: 42
+  n_samples: 200
+  signal_length: 2048
+
+preprocess:
+  window_size: 128
+  stride: 64
+  val_split: 0.15
+  test_split: 0.15
+
+train:
+  lr: 0.001
+  epochs: 50
+  batch_size: 64
+  patience: 5
+
+model:
+  hidden_dim: 256
+  n_classes: 4

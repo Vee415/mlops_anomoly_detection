@@ -1,0 +1,19 @@
+{
+  "name": "Sensor MLOps",
+  "build": {
+    "dockerfile": "../Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "iterative.dvc"
+      ]
+    }
+  },
+  "postCreateCommand": "pip install -r requirements.txt && dvc pull",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  }
+}

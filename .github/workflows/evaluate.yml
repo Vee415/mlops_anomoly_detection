@@ -1,0 +1,58 @@
+name: Evaluate and Report
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install DVC
+        run: pip install dvc
+
+      - name: Run full pipeline
+        run: dvc repro
+
+      - name: Read metrics
+        id: metrics
+        run: |
+          import json
+          with open("reports/metrics.json") as f:
+              m = json.load(f)
+          print(f"val_acc={m['val_acc']}")
+          print(f"macro_f1={m.get('macro_f1', 'N/A')}")
+        shell: python
+
+      - name: Comment metrics on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const metrics = JSON.parse(fs.readFileSync('reports/metrics.json', 'utf8'));
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Model Metrics\n` +
+                    `- Val Accuracy: ${metrics.val_acc}\n` +
+                    `- Macro F1: ${metrics.macro_f1 || 'N/A'}\n` +
+                    `- Macro Precision: ${metrics.macro_precision || 'N/A'}\n` +
+                    `- Macro Recall: ${metrics.macro_recall || 'N/A'}`
+            });
+
+      - name: Upload evaluation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-report
+          path: reports/evaluation_report.md
