@@ -1,4 +1,5 @@
-['remote "storage"']
-    url = s3://your-bucket/dvc-storage
-['core']
+[core]
     remote = storage
+['remote "storage"']
+    url = s3://mlops-sensor-dvc-storage/dvc-storage
+    region = eu-north-1
