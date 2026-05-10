@@ -56,13 +56,13 @@ def get_dataloaders(
     data_path = Path(data_dir)
 
     if model_type == "cnn":
-        train_ds = SensorWindowDataset(
+        train_ds: Dataset = SensorWindowDataset(
             str(data_path / "train_windows.npy"), str(data_path / "train_labels.npy")
         )
-        val_ds = SensorWindowDataset(
+        val_ds: Dataset = SensorWindowDataset(
             str(data_path / "val_windows.npy"), str(data_path / "val_labels.npy")
         )
-        test_ds = SensorWindowDataset(
+        test_ds: Dataset = SensorWindowDataset(
             str(data_path / "test_windows.npy"), str(data_path / "test_labels.npy")
         )
     else:

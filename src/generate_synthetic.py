@@ -57,18 +57,18 @@ def generate_dataset(
         labels: shape (n_samples_per_class * 4,)
     """
     rng = np.random.default_rng(seed)
-    signals = []
-    labels = []
+    signal_list: list[np.ndarray] = []
+    label_list: list[int] = []
 
     for label in range(4):
         for _ in range(n_samples_per_class):
             sample = generate_sample(label, length=signal_length)
             sample += rng.normal(0, 0.1, size=signal_length)  # per-sample jitter
-            signals.append(sample)
-            labels.append(label)
+            signal_list.append(sample)
+            label_list.append(label)
 
-    signals = np.array(signals, dtype=np.float32)
-    labels = np.array(labels, dtype=np.int64)
+    signals = np.array(signal_list, dtype=np.float32)
+    labels = np.array(label_list, dtype=np.int64)
 
     # Shuffle
     idx = rng.permutation(len(labels))

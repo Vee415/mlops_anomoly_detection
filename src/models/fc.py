@@ -49,4 +49,4 @@ class SensorClassifier(nn.Module):
         Returns:
             Logits tensor of shape (batch, n_classes)
         """
-        return self.classifier(x)
+        return self.classifier(x)  # type: ignore[no-any-return]

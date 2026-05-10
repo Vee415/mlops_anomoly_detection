@@ -122,9 +122,12 @@ async def predict(request: PredictRequest):
     from src.preprocess import extract_features, extract_raw_windows
 
     signal = np.array(request.signal, dtype=np.float32)
-    arch = _params["model"].get("arch", "fc")
-    window_size = _params["preprocess"]["window_size"]
-    stride = _params["preprocess"]["stride"]
+    assert _params is not None  # guaranteed by model check above
+    model_cfg = _params["model"]
+    preprocess_cfg = _params["preprocess"]
+    arch = model_cfg.get("arch", "fc")
+    window_size = preprocess_cfg["window_size"]
+    stride = preprocess_cfg["stride"]
 
     device = next(_model.parameters()).device
 

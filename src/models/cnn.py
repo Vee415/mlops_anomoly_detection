@@ -76,4 +76,4 @@ class SensorCNN1D(nn.Module):
         x = self.conv(x)
         x = self.adaptive_pool(x)
         x = x.view(x.size(0), -1)
-        return self.classifier(x)
+        return self.classifier(x)  # type: ignore[no-any-return]
