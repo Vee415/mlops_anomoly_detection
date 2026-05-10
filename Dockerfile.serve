@@ -2,13 +2,17 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Install only serving dependencies (lighter than full requirements)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir fastapi uvicorn pydantic numpy scipy scikit-learn PyYAML mlflow
 
+# Copy source code and config
 COPY src/ ./src/
 COPY params.yaml .
-COPY models/ ./models/
-COPY data/processed/norm_mean.npy data/processed/norm_std.npy data/processed/preprocess_info.json ./data/processed/
+
+# Create data and model directories
+RUN mkdir -p data/processed models
 
 EXPOSE 8000
 
