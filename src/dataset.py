@@ -56,13 +56,25 @@ def get_dataloaders(
     data_path = Path(data_dir)
 
     if model_type == "cnn":
-        train_ds = SensorWindowDataset(str(data_path / "train_windows.npy"), str(data_path / "train_labels.npy"))
-        val_ds = SensorWindowDataset(str(data_path / "val_windows.npy"), str(data_path / "val_labels.npy"))
-        test_ds = SensorWindowDataset(str(data_path / "test_windows.npy"), str(data_path / "test_labels.npy"))
+        train_ds = SensorWindowDataset(
+            str(data_path / "train_windows.npy"), str(data_path / "train_labels.npy")
+        )
+        val_ds = SensorWindowDataset(
+            str(data_path / "val_windows.npy"), str(data_path / "val_labels.npy")
+        )
+        test_ds = SensorWindowDataset(
+            str(data_path / "test_windows.npy"), str(data_path / "test_labels.npy")
+        )
     else:
-        train_ds = SensorDataset(str(data_path / "train_features.npy"), str(data_path / "train_labels.npy"))
-        val_ds = SensorDataset(str(data_path / "val_features.npy"), str(data_path / "val_labels.npy"))
-        test_ds = SensorDataset(str(data_path / "test_features.npy"), str(data_path / "test_labels.npy"))
+        train_ds = SensorDataset(
+            str(data_path / "train_features.npy"), str(data_path / "train_labels.npy")
+        )
+        val_ds = SensorDataset(
+            str(data_path / "val_features.npy"), str(data_path / "val_labels.npy")
+        )
+        test_ds = SensorDataset(
+            str(data_path / "test_features.npy"), str(data_path / "test_labels.npy")
+        )
 
     train_loader = torch.utils.data.DataLoader(train_ds, batch_size=batch_size, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_ds, batch_size=batch_size, shuffle=False)

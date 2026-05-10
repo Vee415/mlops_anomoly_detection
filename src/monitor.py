@@ -90,7 +90,7 @@ def main():
     # Load data
     train_features = np.load(data_dir / "train_features.npy")
     test_features = np.load(data_dir / "test_features.npy")
-    test_labels = np.load(data_dir / "test_labels.npy")
+    _test_labels = np.load(data_dir / "test_labels.npy")
 
     # Drift metrics
     print("Computing drift metrics...")
@@ -98,6 +98,7 @@ def main():
 
     # Load model and predict
     import torch
+
     from src.model import get_model
 
     with open(args.params) as f:
@@ -121,7 +122,9 @@ def main():
             fc_hidden=cnn_params.get("fc_hidden", 128),
             dropout=cnn_params.get("dropout", 0.3),
         )
-        test_ds = SensorWindowDataset(str(data_dir / "test_windows.npy"), str(data_dir / "test_labels.npy"))
+        test_ds = SensorWindowDataset(
+            str(data_dir / "test_windows.npy"), str(data_dir / "test_labels.npy")
+        )
     else:
         from src.dataset import SensorDataset
 
@@ -131,7 +134,9 @@ def main():
             hidden_dim=model_params["hidden_dim"],
             n_classes=model_params["n_classes"],
         )
-        test_ds = SensorDataset(str(data_dir / "test_features.npy"), str(data_dir / "test_labels.npy"))
+        test_ds = SensorDataset(
+            str(data_dir / "test_features.npy"), str(data_dir / "test_labels.npy")
+        )
 
     model.load_state_dict(torch.load("models/model.pth", map_location=device, weights_only=True))
     model.to(device)
@@ -163,8 +168,11 @@ def main():
     with open("reports/drift_metrics.json", "w") as f:
         json.dump(metrics, f, indent=2, default=str)
 
-    print(f"Drift metrics saved to reports/drift_metrics.json")
-    print(f"  Dataset drift: {drift_metrics['dataset_drift']} ({drift_metrics['n_drifted']}/{drift_metrics['n_features']} features)")
+    print("Drift metrics saved to reports/drift_metrics.json")
+    print(
+        f"  Dataset drift: {drift_metrics['dataset_drift']} "
+        f"({drift_metrics['n_drifted']}/{drift_metrics['n_features']} features)"
+    )
     print(f"  Accuracy: {class_metrics['accuracy']}")
 
 

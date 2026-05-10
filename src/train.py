@@ -177,7 +177,7 @@ def main():
             json.dump(metrics, f, indent=2)
 
         print(f"\nTraining complete. Best val_acc={best_val_acc:.4f}")
-        print(f"Model saved to models/model.pth")
+        print("Model saved to models/model.pth")
 
 
 if __name__ == "__main__":

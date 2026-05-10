@@ -80,7 +80,8 @@ def generate_report(
 - **Date:** {datetime.now().strftime("%Y-%m-%d %H:%M")}
 - **Commit:** {git_hash}
 - **Architecture:** {params['model'].get('arch', 'fc')}
-- **Params:** window_size={params['preprocess']['window_size']}, lr={params['train']['lr']}, epochs={params['train']['epochs']}
+- **Params:** window_size={params['preprocess']['window_size']}, \
+lr={params['train']['lr']}, epochs={params['train']['epochs']}
 
 ## Classification Report
 
@@ -98,7 +99,7 @@ def generate_report(
         row = f"| {name} | " + " | ".join(str(cm[i][j]) for j in range(4)) + " |"
         md += row + "\n"
 
-    md += f"""
+    md += """
 ## Reproducibility
 - Run `dvc repro` to reproduce these exact results.
 - DVC lock file: `dvc.lock` (committed)
@@ -142,7 +143,9 @@ def main():
             fc_hidden=cnn_params.get("fc_hidden", 128),
             dropout=cnn_params.get("dropout", 0.3),
         )
-        test_ds = SensorWindowDataset("data/processed/test_windows.npy", "data/processed/test_labels.npy")
+        test_ds = SensorWindowDataset(
+            "data/processed/test_windows.npy", "data/processed/test_labels.npy"
+        )
     else:
         # Load preprocess info to infer input_dim
         with open("data/processed/preprocess_info.json") as f:
@@ -155,7 +158,9 @@ def main():
             hidden_dim=model_params["hidden_dim"],
             n_classes=model_params["n_classes"],
         )
-        test_ds = SensorDataset("data/processed/test_features.npy", "data/processed/test_labels.npy")
+        test_ds = SensorDataset(
+            "data/processed/test_features.npy", "data/processed/test_labels.npy"
+        )
 
     model.load_state_dict(torch.load("models/model.pth", map_location=device, weights_only=True))
     model.to(device)

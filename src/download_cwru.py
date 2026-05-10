@@ -45,8 +45,9 @@ def download_and_load(class_id: int, target_length: int = 2048) -> list[np.ndarr
     Returns:
         List of 1D numpy arrays, each of length target_length.
     """
-    from scipy.io import loadmat
     from urllib.request import urlretrieve
+
+    from scipy.io import loadmat
 
     url = CWRU_URLS[class_id]
     field = CWRU_FIELDS[class_id]

@@ -4,6 +4,6 @@
   "n_warnings": 1,
   "errors": [],
   "warnings": [
-    "Drift detected in 1/4 features (KS test, p<0.05): feat_0(p=0.0227)"
+    "Drift detected in 1/4 features (KS test, p<0.05): feat_0(p=0.0226)"
   ]
 }

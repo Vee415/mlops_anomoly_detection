@@ -11,7 +11,9 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 
-def validate_shapes(features: np.ndarray, labels: np.ndarray, expected_n_features: int) -> list[str]:
+def validate_shapes(
+    features: np.ndarray, labels: np.ndarray, expected_n_features: int
+) -> list[str]:
     """Verify feature and label array shapes match expectations."""
     errors = []
     if features.ndim != 2:
@@ -19,7 +21,10 @@ def validate_shapes(features: np.ndarray, labels: np.ndarray, expected_n_feature
     if labels.ndim != 1:
         errors.append(f"Labels should be 1D, got {labels.ndim}D")
     if features.shape[0] != labels.shape[0]:
-        errors.append(f"Features and labels count mismatch: {features.shape[0]} vs {labels.shape[0]}")
+        errors.append(
+            f"Features and labels count mismatch: "
+            f"{features.shape[0]} vs {labels.shape[0]}"
+        )
     if features.shape[1] != expected_n_features:
         errors.append(f"Expected {expected_n_features} features, got {features.shape[1]}")
     return errors

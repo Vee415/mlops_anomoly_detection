@@ -117,14 +117,17 @@ def main():
     study = optuna.create_study(direction="maximize")
     study.optimize(lambda trial: objective(trial, params), n_trials=args.n_trials)
 
-    print(f"\nBest trial:")
+    print("\nBest trial:")
     print(f"  Value (val_acc): {study.best_value:.4f}")
     print(f"  Params: {study.best_params}")
 
     # Save results
     results = {
         "best_val_acc": round(study.best_value, 4),
-        "best_params": {k: (v if not isinstance(v, float) or not v.is_integer() else int(v)) for k, v in study.best_params.items()},
+        "best_params": {
+            k: (v if not isinstance(v, float) or not v.is_integer() else int(v))
+            for k, v in study.best_params.items()
+        },
         "n_trials": args.n_trials,
     }
     Path("reports").mkdir(exist_ok=True)

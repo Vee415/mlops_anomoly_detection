@@ -157,7 +157,10 @@ def split_data(
     # Then split remaining into train and val
     val_ratio = val_split / (1 - test_split)
     train_features, val_features, train_labels, val_labels = (
-        train_test_split(remaining_features, remaining_labels, test_size=val_ratio, stratify=remaining_labels, random_state=seed)
+        train_test_split(
+            remaining_features, remaining_labels,
+            test_size=val_ratio, stratify=remaining_labels, random_state=seed,
+        )
     )
 
     splits = {

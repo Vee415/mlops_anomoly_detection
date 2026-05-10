@@ -1,6 +1,5 @@
 {
-  "val_acc": 0.9976,
-  "macro_precision": 0.9976,
-  "macro_recall": 0.9976,
-  "macro_f1": 0.9976
+  "val_acc": 0.9962,
+  "val_loss": 0.0257,
+  "best_epoch": 11
 }

@@ -94,7 +94,9 @@ def predict(signal: np.ndarray, model_path: str, data_dir: str, params_path: str
     return {
         "predicted_class": CLASS_NAMES[pred_class],
         "class_index": pred_class,
-        "probabilities": {name: round(float(prob), 4) for name, prob in zip(CLASS_NAMES, mean_probs)},
+        "probabilities": {
+            name: round(float(prob), 4) for name, prob in zip(CLASS_NAMES, mean_probs)
+        },
     }
 
 

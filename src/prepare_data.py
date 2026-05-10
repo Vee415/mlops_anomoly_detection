@@ -1,8 +1,8 @@
 """Data preparation dispatcher — routes to synthetic or CWRU based on params."""
 
 import argparse
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 import yaml
@@ -23,13 +23,13 @@ def main():
 
     if data_source == "synthetic":
         print("Using synthetic data source")
-        result = subprocess.run(
+        subprocess.run(
             [sys.executable, "src/generate_synthetic.py", "--output", args.output],
             check=True,
         )
     elif data_source == "cwru":
         print("Using CWRU Bearing Dataset")
-        result = subprocess.run(
+        subprocess.run(
             [sys.executable, "src/download_cwru.py", "--output", args.output],
             check=True,
         )
